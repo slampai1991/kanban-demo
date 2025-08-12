@@ -1,3 +1,5 @@
 pgdata
 .env
 .venv
+.pub
+
