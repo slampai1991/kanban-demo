@@ -2,49 +2,64 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build-backend:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Build backend
-        run: |
-          cd kanban-backend
-          mvn clean package -DskipTests
-      - name: Build backend Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/kanban-backend:latest ./kanban-backend
-      - name: Push backend image
-        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-      - run: docker push ${{ secrets.DOCKER_USERNAME }}/kanban-backend:latest
-
-  build-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build frontend
-        run: |
+      - uses: actions/checkout@v4
+      - name: Backend tests
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+      - run: mvn -B test -f kanban-backend/pom.xml
+      - name: Frontend tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: 14
+      - run: |
           cd kanban-frontend
-          npm install
-          npm run build --prod
-      - name: Build frontend Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/kanban-frontend:latest ./kanban-frontend
-      - name: Push frontend image
-        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-      - run: docker push ${{ secrets.DOCKER_USERNAME }}/kanban-frontend:latest
+          npm ci
+          npm run test --if-present || true
+          npm run lint --if-present || true
 
   deploy:
+    needs: test
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
+      - uses: actions/checkout@v4
+
+      - name: Prepare .env
+        run: |
+          echo "POSTGRES_DB=${POSTGRES_DB}" > .env
+          echo "POSTGRES_USER=${POSTGRES_USER}" >> .env
+          echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env
+        env:
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
+      - name: Copy project to server
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          source: "."
+          target: "/home/${{ secrets.DEPLOY_USER }}/kanban-app"
+
+      - name: Build and run on server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
           script: |
-            cd /path/to/project
-            docker-compose pull
-            docker-compose up -d
+            cd /home/${{ secrets.DEPLOY_USER }}/kanban-app
+            docker compose pull || true
+            docker compose up -d --build --remove-orphans
