@@ -22,7 +22,7 @@ jobs:
           node-version: 14
       - run: |
           cd kanban-frontend
-          npm ci
+          npm install
           npm run test --if-present || true
           npm run lint --if-present || true
 
