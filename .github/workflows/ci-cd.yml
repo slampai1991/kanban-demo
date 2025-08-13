@@ -7,9 +7,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BACKEND: ghcr.io/${{ github.repository_owner }}/kanban-backend
-  IMAGE_FRONTEND: ghcr.io/${{ github.repository_owner }}/kanban-frontend
-  IMAGE_NGINX: ghcr.io/${{ github.repository_owner }}/kanban-nginx
+  IMAGE_BACKEND: ghcr.io/${GH_USER}/kanban-backend
+  IMAGE_FRONTEND: ghcr.io/${GH_USER}/kanban-frontend
+  IMAGE_NGINX: ghcr.io/${GH_USER}/kanban-nginx
 
 jobs:
   # test-backend:
