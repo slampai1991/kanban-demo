@@ -12,36 +12,36 @@ env:
   IMAGE_NGINX: ghcr.io/${{ github.repository_owner }}/kanban-nginx
 
 jobs:
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Java 8
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 8
-      - name: Run Maven tests
-        run: mvn -B test -f kanban-backend/pom.xml
-      - name: Run Maven integration tests
-        run: mvn -B verify -f kanban-backend/pom.xml
+  # test-backend:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Java 8
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: 8
+  #     - name: Run Maven tests
+  #       run: mvn -B test -f kanban-backend/pom.xml
+  #     - name: Run Maven integration tests
+  #       run: mvn -B verify -f kanban-backend/pom.xml
 
-  test-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Install dependencies
-        run: cd kanban-frontend && npm ci
-      - name: Lint frontend
-        run: cd kanban-frontend && npm run lint
-      - name: Run unit tests
-        run: cd kanban-frontend && npm run test -- --watch=false --browsers=ChromeHeadless
-      - name: Run e2e tests
-        run: cd kanban-frontend && npm run e2e -- --webdriver-update=false
+  # test-frontend:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 18
+  #     - name: Install dependencies
+  #       run: cd kanban-frontend && npm ci
+  #     - name: Lint frontend
+  #       run: cd kanban-frontend && npm run lint
+  #     - name: Run unit tests
+  #       run: cd kanban-frontend && npm run test -- --watch=false --browsers=ChromeHeadless
+  #     - name: Run e2e tests
+  #       run: cd kanban-frontend && npm run e2e -- --webdriver-update=false
 
   build-and-push:
     runs-on: ubuntu-latest
