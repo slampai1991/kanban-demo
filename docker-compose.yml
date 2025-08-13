@@ -12,6 +12,7 @@ services:
 
   backend:
     build: ./kanban-backend
+    image: ghcr.io/${GH_USER}/kanban-demo-backend:latest
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://kanban-postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -25,16 +26,18 @@ services:
 
   frontend1:
     build: ./kanban-frontend
+    image: ghcr.io/${GH_USER}/kanban-demo-frontend:latest
     networks:
       - kanban-net
 
   frontend2:
     build: ./kanban-frontend
+    image: ghcr.io/${GH_USER}/kanban-demo-frontend:latest
     networks:
       - kanban-net
 
   nginx:
-    image: nginx:alpine
+    image: ghcr.io/${GH_USER}/kanban-demo-nginx:latest
     ports:
       - "80:80"
       - "443:443"
