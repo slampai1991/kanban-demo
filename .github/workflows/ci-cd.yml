@@ -6,6 +6,7 @@ on:
       - main
 
 jobs:
+
   test-backend:
     name: Backend tests
     runs-on: ubuntu-latest
@@ -18,20 +19,71 @@ jobs:
           java-version: 8
       - name: Run Maven tests
         run: mvn -B test -f kanban-backend/pom.xml
+      - name: Run Maven integration tests
+        run: mvn -B verify -f kanban-backend/pom.xml
+
+  test-frontend:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 14
+      - name: Install dependencies
+        run: cd kanban-frontend && npm ci
+      - name: Lint frontend
+        run: cd kanban-frontend && npm run lint
+      - name: Run unit tests
+        run: cd kanban-frontend && npm run test -- --watch=false --browsers=ChromeHeadless
+      - name: Run e2e tests
+        run: cd kanban-frontend && npm run e2e -- --webdriver-update=false
+
+  build-docker:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -t kanban-backend:latest ./kanban-backend
+      - name: Build frontend image
+        run: docker build -t kanban-frontend:latest ./kanban-frontend
+      - name: Build git git git  image
+        run: docker build -t kanban-nginx:latest -f ./kanban-frontend/Dockerfile ./kanban-frontend
+
+  compose-check:
+    name: Docker Compose check
+    runs-on: ubuntu-latest
+    needs: build-docker
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create .env file with test secrets
+        run: |
+          echo "POSTGRES_DB=testdb" > .env
+          echo "POSTGRES_USER=testuser" >> .env
+          echo "POSTGRES_PASSWORD=testpass" >> .env
+      - name: Start all services
+        run: docker compose up -d --build
+      - name: Wait for backend health
+        run: |
+          sleep 20
+          curl --fail http://localhost:8081/actuator/health
+      - name: Stop all services
+        run: docker compose down
 
   deploy:
     name: Deploy to server
     runs-on: ubuntu-latest
-    needs: test-backend
+    needs: compose-check
     steps:
       - uses: actions/checkout@v4
-
       - name: Create .env file with secrets
         run: |
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" > .env
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-
       - name: Copy project files to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -41,7 +93,6 @@ jobs:
           source: "."
           target: "/home/${{ secrets.DEPLOY_USER }}/kanban-app"
           port: 22
-
       - name: Run docker compose on remote server
         uses: appleboy/ssh-action@v0.1.7
         with:
