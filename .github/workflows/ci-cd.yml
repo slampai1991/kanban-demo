@@ -1,4 +1,4 @@
-name: Simple Docker Compose Build
+name: Kanban Demo CI/CD
 
 on:
   push:
@@ -6,17 +6,128 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build and start all services
+  # Загружаем репо, подготавливаем окружение к работе
+  checkout:
+    name: Checkout repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create .env file
-        run: |
-          echo "POSTGRES_DB=kanban" > .env
-          echo "POSTGRES_USER=user" >> .env
-          echo "POSTGRES_PASSWORD=password" >> .env
-      - name: Build and start services
-        run: docker compose up -d --build
-      - name: Stop all services
-        run: docker compose down
+
+  # setup-env:
+  #   name: Setup environment
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Node.js (old Angular)
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 12
+  #     - name: Setup Java 8
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: 8
+
+  # build:
+  #   name: Build application
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Build backend (Maven)
+  #       run: mvn -B package -f kanban-backend/pom.xml
+  #     - name: Build frontend (Angular 7)
+  #       run: cd kanban-frontend && npm install && npm run build -- --prod
+
+  # test:
+  #   name: Run tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Backend tests (unit)
+  #       run: mvn -B test -f kanban-backend/pom.xml
+  #     - name: Backend integration tests
+  #       run: mvn -B verify -f kanban-backend/pom.xml
+  #     - name: Frontend unit tests
+  #       run: cd kanban-frontend && npm run test -- --watch=false --browsers=ChromeHeadless
+  #     - name: Frontend e2e tests
+  #       run: cd kanban-frontend && npm run e2e -- --webdriver-update=false
+
+  # lint:
+  #   name: Lint code
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Lint frontend
+  #       run: cd kanban-frontend && npm run lint
+
+  # docker-build:
+  #   name: Build Docker images
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Build backend image
+  #       run: docker build -t kanban-backend:latest ./kanban-backend
+  #     - name: Build frontend image
+  #       run: docker build -t kanban-frontend:latest ./kanban-frontend
+  #     - name: Build nginx image
+  #       run: docker build -t kanban-nginx:latest -f ./kanban-frontend/Dockerfile ./kanban-frontend
+
+  # compose-up:
+  #   name: Docker Compose up
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Create .env file
+  #       run: |
+  #         echo "POSTGRES_DB=kanban" > .env
+  #         echo "POSTGRES_USER=user" >> .env
+  #         echo "POSTGRES_PASSWORD=password" >> .env
+  #     - name: Start all services
+  #       run: docker compose up -d --build
+  #     - name: Stop all services
+  #       run: docker compose down
+
+  # deploy:
+  #   name: Deploy to server
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Copy project files to server
+  #       uses: appleboy/scp-action@v0.1.7
+  #       with:
+  #         host: ${{ secrets.DEPLOY_HOST }}
+  #         username: ${{ secrets.DEPLOY_USER }}
+  #         key: ${{ secrets.DEPLOY_SSH_KEY }}
+  #         source: "."
+  #         target: "/home/${{ secrets.DEPLOY_USER }}/kanban-app"
+  #         port: 22
+  #     - name: Run docker compose on remote server
+  #       uses: appleboy/ssh-action@v0.1.7
+  #       with:
+  #         host: ${{ secrets.DEPLOY_HOST }}
+  #         username: ${{ secrets.DEPLOY_USER }}
+  #         key: ${{ secrets.DEPLOY_SSH_KEY }}
+  #         port: 22
+  #         script: |
+  #           cd /home/${{ secrets.DEPLOY_USER }}/kanban-app
+  #           docker compose pull || true
+  #           docker compose up -d --build --remove-orphans
+
+  # publish-artifact:
+  #   name: Publish build artifacts
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Upload backend jar
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: kanban-backend-jar
+  #         path: kanban-backend/target/*.jar
+
+  # cleanup:
+  #   name: Cleanup resources
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Stop all services
+  #       run: docker compose down
