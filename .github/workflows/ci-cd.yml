@@ -28,15 +28,15 @@ jobs:
           distribution: 'temurin'
           java-version: 8
 
-  # build:
-  #   name: Build application
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Build backend (Maven)
-  #       run: mvn -B package -f kanban-backend/pom.xml
-  #     - name: Build frontend (Angular 7)
-  #       run: cd kanban-frontend && npm install && npm run build -- --prod
+  build:
+    name: Build application
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend (Maven)
+        run: mvn -B package -f kanban-backend/pom.xml
+      - name: Build frontend (Angular 7)
+        run: cd kanban-frontend && npm install && npm run build -- --prod
 
   # test:
   #   name: Run tests
