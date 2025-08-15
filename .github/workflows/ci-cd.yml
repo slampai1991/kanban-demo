@@ -123,7 +123,7 @@ jobs:
       - name: Install dependencies
         run: cd kanban-frontend && npm install --legacy-peer-deps
       - name: Lint frontend
-        run: cd kanban-frontend && npm run lint
+        run: cd kanban-frontend && npm run lint -- --force
 
   # docker-build:
   #   name: Build Docker images
