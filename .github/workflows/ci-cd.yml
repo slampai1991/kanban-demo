@@ -133,17 +133,17 @@ jobs:
       - name: Lint frontend
         run: cd kanban-frontend && npm run lint -- --force
 
-  # docker-build:
-  #   name: Build Docker images
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Build backend image
-  #       run: docker build -t kanban-backend:latest ./kanban-backend
-  #     - name: Build frontend image
-  #       run: docker build -t kanban-frontend:latest ./kanban-frontend
-  #     - name: Build nginx image
-  #       run: docker build -t kanban-nginx:latest -f ./kanban-frontend/Dockerfile ./kanban-frontend
+  docker-build:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -t kanban-backend:latest ./kanban-backend
+      - name: Build frontend image
+        run: docker build -t kanban-frontend:latest ./kanban-frontend
+      - name: Build nginx image
+        run: docker build -t kanban-nginx:latest -f ./kanban-frontend/Dockerfile ./kanban-frontend
 
   # compose-up:
   #   name: Docker Compose up
