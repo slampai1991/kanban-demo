@@ -61,6 +61,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '8'
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }} && break
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
       - name: Run backend unit tests
         run: mvn -B test -f kanban-backend/pom.xml
