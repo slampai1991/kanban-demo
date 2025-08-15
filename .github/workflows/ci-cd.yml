@@ -18,16 +18,6 @@ jobs:
           distribution: 'temurin'
           java-version: '8'
 
-      # Кэширование Maven зависимостей
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-
-
-      # Сборка бэкенда
       - name: Build backend with Maven
         run: mvn -B package -f kanban-backend/pom.xml
 
@@ -35,21 +25,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '12'
-          cache: 'npm'
-          cache-dependency-path: 'kanban-frontend/package-lock.json'
 
-      # Кэширование npm зависимостей
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: kanban-frontend/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('kanban-frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
-      # Сборка фронтенда
       - name: Build frontend
-        working-directory: kanban-frontend
         run: |
           cd kanban-frontend
           npm install --legacy-peer-deps
@@ -69,16 +46,6 @@ jobs:
           distribution: 'temurin'
           java-version: '8'
 
-      # Кэширование Maven зависимостей
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-
-
-      # Тесты бэкенда
       - name: Run backend unit tests
         run: mvn -B test -f kanban-backend/pom.xml
         
@@ -89,21 +56,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '12'
-          cache: 'npm'
-          cache-dependency-path: 'kanban-frontend/package-lock.json'
-
-      # Кэширование npm зависимостей
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: kanban-frontend/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('./kanban-frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
-      # Тесты фронтенда
+          
       - name: Run frontend unit tests
-        working-directory: kanban-frontend
         run: |
           cd kanban-frontend
           npm install --legacy-peer-deps
@@ -117,7 +71,6 @@ jobs:
 
       # e2e тесты
       - name: Run frontend e2e tests
-        working-directory: kanban-frontend
         run: |
           cd kanban-frontend
           npm run e2e -- --webdriver-update=false --protractor-config=protractor-ci.conf.js
