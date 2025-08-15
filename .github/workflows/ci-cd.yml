@@ -36,18 +36,20 @@ jobs:
         with:
           node-version: '12'
           cache: 'npm'
+          cache-dependency-path: 'kanban-frontend/package-lock.json'
 
       # Кэширование npm зависимостей
       - name: Cache npm dependencies
         uses: actions/cache@v3
         with:
           path: kanban-frontend/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('./kanban-frontend/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('kanban-frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
       # Сборка фронтенда
       - name: Build frontend
+        working-directory: kanban-frontend
         run: |
           cd kanban-frontend
           npm install --legacy-peer-deps
@@ -88,6 +90,7 @@ jobs:
         with:
           node-version: '12'
           cache: 'npm'
+          cache-dependency-path: 'kanban-frontend/package-lock.json'
 
       # Кэширование npm зависимостей
       - name: Cache npm dependencies
@@ -100,6 +103,7 @@ jobs:
 
       # Тесты фронтенда
       - name: Run frontend unit tests
+        working-directory: kanban-frontend
         run: |
           cd kanban-frontend
           npm install --legacy-peer-deps
@@ -113,6 +117,7 @@ jobs:
 
       # e2e тесты
       - name: Run frontend e2e tests
+        working-directory: kanban-frontend
         run: |
           cd kanban-frontend
           npm run e2e -- --webdriver-update=false --protractor-config=protractor-ci.conf.js
