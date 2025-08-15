@@ -75,6 +75,13 @@ jobs:
         run: |
           cd kanban-frontend
           npm run e2e -- --webdriver-update=false --protractor-config=protractor-ci.conf.js
+          
+      - name: Upload test reports
+        if: failure()  # выгрузить только если тесты упали
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: kanban-backend/target/failsafe-reports
 
   # # Опционально: шаг деплоя
   # deploy:
