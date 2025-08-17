@@ -123,7 +123,7 @@ jobs:
   deploy:
     name: Deploy to server
     needs:
-      - docker-build
+      - compose-up
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -148,19 +148,42 @@ jobs:
             docker compose pull || true
             docker compose up -d --build --remove-orphans
 
-  publish-artifact:
-    name: Publish build artifacts
-    needs:
-      - build
-      - test
+  collect-logs:
+    name: Collect workflow logs
+    needs: [build, test, lint, docker-build, compose-up, deploy]
+    if: always()  # Всегда выполняется, даже при ошибках
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Upload backend jar
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Archive logs
+        run: |
+          mkdir logs
+          # Копируем логи docker
+          docker ps -a > logs/containers.txt
+          docker images > logs/images.txt
+          
+          # Собираем логи из этапов
+          echo "### BUILD LOGS ###" > logs/workflow.log
+          cat build.log >> logs/workflow.log
+          echo "### TEST LOGS ###" >> logs/workflow.log
+          cat test.log >> logs/workflow.log
+          echo "### LINT LOGS ###" > logs/workflow.log
+          cat lint.log >> logs/workflow.log
+          echo "### DOCKER-BUILD LOGS ###" > logs/workflow.log
+          cat docker-build.log >> logs/workflow.log
+          echo "### COMPOSE-UP LOGS ###" > logs/workflow.log
+          cat compose-up.log >> logs/workflow.log
+          echo "### DEPLOY LOGS ###" > logs/workflow.log
+          cat deploy.log >> logs/workflow.log
+      
+      - name: Upload all logs
         uses: actions/upload-artifact@v4
         with:
-          name: kanban-backend-jar
-          path: kanban-backend/target/*.jar
+          name: workflow-logs
+          path: logs/
+          retention-days: 7
 
   cleanup:
     name: Cleanup resources
